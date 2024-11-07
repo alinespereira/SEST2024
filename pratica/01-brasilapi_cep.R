@@ -1,19 +1,25 @@
 library(httr)
 library(jsonlite)
 
-url_base <- ""
-endpoint_cep <- ""
+buscar_cep <- function(cep) {
+  url_base <- "https://brasilapi.com.br"
+  endpoint_cep <- "/api/cep/v2/"
+  
+  url <- paste0(url_base, endpoint_cep, cep)
+  
+  GET(url) |>
+    content(as = "text") |>
+    purrr::discard_at("location") |>
+    fromJSON() |>
+    tibble::as.tibble() |>
+    dplyr::first()
+}
 
-cep <- "01310000"
+buscar_ceps <- function(ceps) {
+  ceps |>
+    purrr::map(buscar_cep) |>
+    dplyr::bind_rows()
+}
 
-# Fazer requisição
-
-r_cep <- GET()
-
-# Formatar o conteúdo da resposta
-
-content(r_cep, as = "text")
-
-# Lição de casa
-
-- Pesquisar preço de carros na tabela FIPE via Brasil API.
+ceps <- c()
+buscar_ceps(ceps)
